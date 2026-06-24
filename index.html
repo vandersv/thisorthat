@@ -2576,7 +2576,15 @@ function wireRealtime(){
 // ===========================================================================
 //  HOST actions
 // ===========================================================================
-const setGame = patch => sb.from('game').update(patch).eq('id',1);
+// NB: supabase-js queries are lazy — they only fire when .then()/await runs.
+// These host helpers are called fire-and-forget from onclick, so we MUST
+// invoke .then() here or the update never reaches the database.
+const setGame = patch => {
+  sb.from('game').update(patch).eq('id',1).then(
+    ({error}) => { if(error) toast('Didn’t sync — tap again',true); },
+    ()        => toast('Network hiccup — tap again',true)
+  );
+};
 const goTo   = i => setGame({ idx:Math.max(0,Math.min(CARDS.length-1,i)), phase:'voting' });
 const reveal = () => setGame({ phase:'revealed' });
 const toLobby= () => setGame({ phase:'lobby' });
@@ -2647,7 +2655,16 @@ function computeAwards(){
 // ===========================================================================
 //  RENDER
 // ===========================================================================
-function render(){ ({join:renderJoin, room:renderRoom, host:renderHost}[ROLE]||renderJoin)(); }
+// signature of everything the UI depends on — lets the safety poll skip
+// redundant full re-renders (which would otherwise destroy buttons/inputs
+// every few seconds and swallow a click or tap mid-interaction).
+function stateSig(){
+  const v=votesFor(game.idx);
+  return [ROLE, !!me, game.phase, game.idx, game.reveal_names, players.length,
+          Object.keys(v).length, Object.values(v).map(x=>x.choice).sort().join('')].join('|');
+}
+let lastSig=null;
+function render(){ ({join:renderJoin, room:renderRoom, host:renderHost}[ROLE]||renderJoin)(); lastSig=stateSig(); }
 
 // ---------- JOIN / VOTER ----------
 function renderJoin(){
@@ -2863,8 +2880,9 @@ Object.assign(window,{castVote,goTo,reveal,toLobby,toAwards,toggleNames,setGame}
   }catch(e){ toast('Connection issue — retrying',true); }
   render();
   wireRealtime();
-  // gentle re-poll safety net in case a realtime event is missed
-  setInterval(async()=>{ try{ await loadAll(); render(); }catch(e){} }, 5000);
+  // gentle re-poll safety net in case a realtime event is missed —
+  // only re-render when something actually changed (no idle rebuilds).
+  setInterval(async()=>{ try{ await loadAll(); if(stateSig()!==lastSig) render(); }catch(e){} }, 5000);
 })();
 </script>
 </body>
