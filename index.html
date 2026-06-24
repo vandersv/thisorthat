@@ -201,6 +201,16 @@ button{font-family:var(--font); cursor:pointer; border:none}
 .endscreen h2 em{font-style:normal;display:block;-webkit-text-stroke:3px #000;color:transparent}
 .endscreen p{font-weight:500;font-size:clamp(20px,2.6vw,30px);max-width:760px;letter-spacing:-0.3px}
 
+/* countdown timer pill (mingle / discussion) */
+#timer{position:fixed; top:18px; left:50%; transform:translateX(-50%); z-index:80;
+  background:#000; color:var(--yellow); font-weight:700; font-size:clamp(24px,3.4vw,44px);
+  letter-spacing:-0.5px; padding:8px 30px; border-radius:9999px; opacity:0; transition:.25s;
+  box-shadow:0 8px 34px rgba(0,0,0,.28); font-variant-numeric:tabular-nums}
+#timer.show{opacity:1}
+#timer.up{background:var(--ui-red); color:#fff}
+.vprog{text-align:center; font-weight:700; font-size:clamp(24px,3.4vw,40px); letter-spacing:-0.8px; margin-top:26px}
+.vprog .pdot{display:inline-block; width:12px; height:12px; border-radius:50%; background:#000; margin-left:14px; vertical-align:middle; animation:pulse 1.2s infinite}
+
 /* connection toast */
 #toast{position:fixed; bottom:14px; left:50%; transform:translateX(-50%); background:#000; color:#fff;
   font-weight:700; font-size:14px; padding:8px 18px; border-radius:9999px; z-index:99; opacity:0; transition:.3s; border:1px solid #333}
@@ -211,6 +221,7 @@ button{font-family:var(--font); cursor:pointer; border:none}
 <body>
 <div class="brandbar"></div>
 <div id="app"></div>
+<div id="timer"></div>
 <div id="toast"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -2582,6 +2593,17 @@ const CARDS = [
   { flavour:'mercury', a:{label:'Hydro lake view',        emoji:'💧'}, b:{label:'Wind farm view',  emoji:'🌬️'},
     note:"We're all-renewable — no wrong answer." },
 
+  // ---- 🚀 the day ahead: vibe coding → agentic engineering ----------------
+  //  Bridges the warm-up straight into Day 1's theme (the new SDLC).
+  { flavour:'theme', a:{label:'Vibe coding', emoji:'🎸'}, b:{label:'Agentic engineering', emoji:'🏗️'},
+    discuss:"Find someone on the other side — where's your team really sitting on that spectrum today?" },
+  { flavour:'theme', a:{label:'Conductor (hands-on)', emoji:'🎼'}, b:{label:'Orchestrator (delegates to agents)', emoji:'🎛️'},
+    discuss:"Pair up: which are you most days — and which do you want to be by year-end?" },
+  { flavour:'theme', a:{label:"Ship the AI's 80%", emoji:'🤖'}, b:{label:'Hand-craft the last 20%', emoji:'✋'}, spicy:true,
+    discuss:"Argue it out: where does 'good enough' end and craftsmanship begin?" },
+  { flavour:'theme', a:{label:'Prompt it', emoji:'💬'}, b:{label:'Spec it', emoji:'📋'},
+    note:"From syntax to intent — the day's big shift." },
+
   // ---- 🔮 finale: predict the team ----------------------------------------
   { flavour:'predict', type:'predict', a:{label:'Most of us are optimists', emoji:'🌅'}, b:{label:'Most of us are realists', emoji:'🧐'},
     note:"PREDICT: guess which way the room leans. Feeds The Oracle award." },
@@ -2672,14 +2694,15 @@ const setGame = patch => {
     ()        => toast('Network hiccup — tap again',true)
   );
 };
-const goTo   = i => setGame({ idx:Math.max(0,Math.min(CARDS.length-1,i)), phase:'voting' });
+const goTo   = i => setGame({ idx:Math.max(0,Math.min(CARDS.length-1,i)), phase:'voting', timer_end:null });
 const reveal = () => setGame({ phase:'revealed' });
-const toLobby= () => setGame({ phase:'lobby' });
-const toRecap= () => setGame({ phase:'recap' });
+const toLobby= () => setGame({ phase:'lobby', timer_end:null });
+const toRecap= () => setGame({ phase:'recap', timer_end:null });
 const toAwards=() => setGame({ phase:'awards' });
 const toDone = () => setGame({ phase:'done' });
 const toggleNames = () => setGame({ reveal_names: !game.reveal_names });
-const isMingle = i => CARDS[i] && CARDS[i].type==='mingle';
+const startTimer = secs => setGame({ timer_end: new Date(Date.now()+secs*1000).toISOString() });
+const clearTimer = () => setGame({ timer_end:null });
 
 // ===========================================================================
 //  VOTER action
@@ -2893,16 +2916,19 @@ function renderRoom(){
     }
   }
   const showDiscuss = game.phase==='revealed' && card.discuss;
+  const isVoting = game.phase==='voting';
+  // During voting we deliberately DON'T show the split (no bandwagon, bigger reveal) —
+  // just the two options. The tally + names appear on reveal.
   const sideHTML=(c,cls,names,pct,cnt)=>`
     <div class="bar ${cls} ${revealed?'reveal':''}">
-      <div class="fill" style="height:${(game.phase==='voting'? (cnt/Math.max(1,players.length)*100) : pct)}%"></div>
+      <div class="fill" style="height:${isVoting?0:pct}%"></div>
       <div class="inner">
         <div><div class="be">${glyph(c,54)}</div><div class="blabel">${esc(c.label)}</div></div>
-        <div>
-          <div class="bpct">${game.phase==='revealed'?pct+'%':cnt}</div>
-          <div class="bcount">${game.phase==='revealed'?cnt+' vote'+(cnt!==1?'s':''):'votes in'}</div>
+        ${isVoting?'':`<div>
+          <div class="bpct">${pct}%</div>
+          <div class="bcount">${cnt} vote${cnt!==1?'s':''}</div>
           <div class="names">${revealed?names.map(esc).join(' · '):''}</div>
-        </div>
+        </div>`}
       </div>
     </div>`;
   APP.innerHTML=`<div id="room" class="${game.phase}">
@@ -2914,7 +2940,9 @@ function renderRoom(){
         ${sideHTML(card.a,'A',t.A,pA,t.A.length)}
         ${sideHTML(card.b,'B',t.B,pB,t.B.length)}
       </div>
-      <div class="callout ${callout?'show':''}">${callout}</div>
+      ${isVoting
+        ? `<div class="vprog">🔒 ${t.total} of ${players.length} locked in<span class="pdot"></span></div>`
+        : `<div class="callout ${callout?'show':''}">${callout}</div>`}
       ${showDiscuss?`<div class="discuss"><b>💬 Talk it out</b>${esc(card.discuss)}</div>`:''}
     </div>
     <div id="qr"><div class="qcap">Late? Scan</div><div class="qrbox" id="qrbox"></div><div class="qurl">${shortUrl}</div></div>
@@ -3009,6 +3037,10 @@ function renderHost(){
   const nextBtn = lastCard
     ? `<button class="btn" onclick="toRecap()">Wrap up 🏁</button>`
     : `<button class="btn" onclick="goTo(${game.idx+1})">Next ▶</button>`;
+  const timerActive = game.timer_end && new Date(game.timer_end).getTime() > Date.now();
+  const timerCtl = timerActive
+    ? `<button class="btn on" onclick="clearTimer()">⏹ Stop ⏱</button>`
+    : `<button class="btn dark" onclick="startTimer(60)">⏱ 60s</button><button class="btn dark" onclick="startTimer(90)">⏱ 90s</button>`;
 
   // ---------- mingle card ----------
   if(card.type==='mingle'){
@@ -3021,6 +3053,7 @@ function renderHost(){
       </div>
       <div class="controls">
         <button class="btn dark" onclick="goTo(${game.idx-1})" ${game.idx===0?'disabled':''}>◀ Prev</button>
+        ${timerCtl}
         ${nextBtn}
         <span style="flex:1"></span>
         <button class="btn dark" onclick="toLobby()">Lobby</button>
@@ -3068,6 +3101,7 @@ function renderHost(){
         : `<button class="btn dark" onclick="setGame({phase:'voting'})">↩ Re-open</button>`}
       ${nextBtn}
       <label class="toggle"><input type="checkbox" ${game.reveal_names?'checked':''} onchange="toggleNames()"> show names</label>
+      ${phase==='revealed'?timerCtl:''}
       <span style="flex:1"></span>
       <button class="btn dark" onclick="toLobby()">Lobby</button>
       <button class="btn on" onclick="toRecap()">Finish 🏁</button>
@@ -3076,10 +3110,21 @@ function renderHost(){
     <div class="deck">${deckRows}</div>
   </div>`;
 }
-function flavColor(f){return {silly:'#FFF100',tech:'#69A2B9',leader:'#9ACF77',mercury:'#358600',predict:'#265BDE'}[f]||'#888';}
+function flavColor(f){return {silly:'#FFF100',tech:'#69A2B9',leader:'#9ACF77',theme:'#FF8A00',mercury:'#358600',predict:'#265BDE'}[f]||'#888';}
 
 // expose for inline onclick
-Object.assign(window,{castVote,goTo,reveal,toLobby,toRecap,toAwards,toDone,toggleNames,setGame});
+Object.assign(window,{castVote,goTo,reveal,toLobby,toRecap,toAwards,toDone,toggleNames,setGame,startTimer,clearTimer});
+
+// ---- countdown timer tick (updates the pill only, no full re-render) ------
+setInterval(()=>{
+  const el=$('#timer'); if(!el) return;
+  const end = game.timer_end ? new Date(game.timer_end).getTime() : 0;
+  if(!end){ if(el.className) el.className=''; return; }
+  const rem = Math.round((end - Date.now())/1000);
+  if(rem>0){ el.className='show'; el.textContent='⏱ '+Math.floor(rem/60)+':'+String(rem%60).padStart(2,'0'); }
+  else if(rem>-5){ el.className='show up'; el.textContent="⏰ Time's up!"; }
+  else if(el.className){ el.className=''; }
+}, 250);
 
 // ===========================================================================
 //  BOOT
