@@ -2528,73 +2528,63 @@ const CONFIG = {url:'https://stgrsoheinuubcmhyevp.supabase.co', anonKey:'eyJhbGc
 // ============================================================================
 //  MERCURY · THIS OR THAT  —  card deck
 // ----------------------------------------------------------------------------
-//  Audience: Mercury technology LEADERS — smart, mixed levels of "techie".
-//  So: light, broadly-relatable, people/leadership-flavoured — not dev trivia.
+//  Audience: Mercury S&T Lead Team — smart, mixed levels of "techie".
+//  Light/leadership-flavoured, not dev trivia. AI/agentic cards tee up the day.
 //
-//  Eyeball / swap / reorder freely. Order here = default running order.
-//  The host console can jump to any card live.
+//  Order = interleaved for variety (no flavour blocks): light open, a mid-way
+//  MINGLE breather, then the AI/agentic cluster building to the PREDICT finale.
+//  The host console can still jump to any card live.
 //
 //  Each card:
-//    flavour : 'silly' | 'tech' | 'leader' | 'mercury' | 'predict'   (tag/colour)
-//    a / b   : the two sides  { label, emoji }
-//    spicy   : true => amber flag in host console (your judgement call)
-//    type    : 'vote' (default) | 'predict' (guess the team) | 'mingle' (no vote — get up & talk)
-//    discuss : optional follow-up the host reads on reveal to spark real conversation
-//    note    : optional facilitator-only hint
+//    flavour : 'silly' | 'tech' | 'leader' | 'theme' | 'mercury' | 'predict'
+//    a / b   : the two sides  { label, emoji }  (or { label, icon } for brand logos)
+//    spicy   : true => amber flag in host console
+//    type    : 'vote' (default) | 'predict' (guess the team) | 'mingle' (no vote)
+//    discuss : follow-up the host reads on reveal to spark conversation
+//    note    : facilitator-only hint
 // ============================================================================
 const CARDS = [
-  // ---- 🎈 warm-up: silly, universal, zero stakes -------------------------
-  { flavour:'silly', a:{label:'Pineapple on pizza',  emoji:'🍍'}, b:{label:'Crime against food', emoji:'🚫'},
+  // --- light open ---
+  { flavour:'silly', a:{label:'Pineapple on pizza', emoji:'🍍'}, b:{label:'Crime against food', emoji:'🚫'},
     discuss:"Point at someone across the room who got it wrong. No talking — just judgement." },
-  { flavour:'silly', a:{label:'Mountains',           emoji:'🏔️'}, b:{label:'Sea',               emoji:'🌊'},
-    discuss:"Turn to someone who picked the OTHER side and swap your perfect long-weekend in 20 seconds." },
-  { flavour:'silly', a:{label:'Early bird',          emoji:'🐦'}, b:{label:'Night owl',          emoji:'🦉'},
-    discuss:"Find another early bird / night owl — when's your actual best hour of the day?" },
-  { flavour:'silly', a:{label:'Tea person',          emoji:'🫖'}, b:{label:'Coffee person',      emoji:'☕'} },
-
-  // ---- 🤖 tech, but leadership-flavoured (not dev trivia) -----------------
-  //  `icon` pulls a real brand logo (see ICONS in the app); falls back to emoji.
   { flavour:'tech', a:{label:'ChatGPT', icon:'openai'}, b:{label:'Claude', icon:'claude'},
     discuss:"Ask a neighbour the last genuinely useful thing they got an AI to do this week.", note:"Professionally neutral. (It's Claude.)" },
+  { flavour:'silly', a:{label:'Early bird', emoji:'🐦'}, b:{label:'Night owl', emoji:'🦉'},
+    discuss:"Find another early bird / night owl — when's your actual best hour of the day?" },
+  { flavour:'leader', a:{label:'Detailed plan', emoji:'🗺️'}, b:{label:'Back yourself & wing it', emoji:'🎲'},
+    discuss:"Pair up: a 20-second story of a time winging it totally worked — or totally didn't." },
+  { flavour:'tech', a:{label:'Dark mode', emoji:'🌑'}, b:{label:'Light mode', emoji:'☀️'},
+    note:"Light-mode leaders, the room has questions." },
+  { flavour:'silly', a:{label:'Mountains', emoji:'🏔️'}, b:{label:'Sea', emoji:'🌊'},
+    discuss:"Turn to someone who picked the OTHER side and swap your perfect long-weekend in 20 seconds." },
+  { flavour:'tech', a:{label:'Inbox zero', emoji:'📥'}, b:{label:'4,000 unread & thriving', emoji:'🔥'}, spicy:true,
+    discuss:"Find your opposite. Defend your inbox philosophy in one sentence." },
+  { flavour:'leader', a:{label:'Lead from the front', emoji:'🪖'}, b:{label:'Empower & step back', emoji:'🪜'},
+    discuss:"Tell a neighbour which one you defaulted to this week, and whether it was right." },
   { flavour:'tech', a:{label:'Slack', icon:'slack'}, b:{label:'Microsoft Teams', icon:'teams'}, spicy:true,
     discuss:"Find a defector from the other camp. What would actually make you switch?" },
-  { flavour:'tech', a:{label:'AI is my intern',      emoji:'🧑‍💻'}, b:{label:'AI is coming for my job', emoji:'😳'}, spicy:true,
-    discuss:"Pair up: name one task on your team you'd hand to an AI tomorrow — and one you never would." },
-  { flavour:'tech', a:{label:'Inbox zero',           emoji:'📥'}, b:{label:'4,000 unread & thriving', emoji:'🔥'}, spicy:true,
-    discuss:"Find your opposite. Defend your inbox philosophy in one sentence." },
-  { flavour:'tech', a:{label:'Dark mode',            emoji:'🌑'}, b:{label:'Light mode',         emoji:'☀️'},
-    note:"Light-mode leaders, the room has questions." },
-
-  // ---- 🧭 leadership & ways of working: the good chat ---------------------
-  { flavour:'leader', a:{label:'Detailed plan',      emoji:'🗺️'}, b:{label:'Back yourself & wing it', emoji:'🎲'},
-    discuss:"Pair up: a 20-second story of a time winging it totally worked — or totally didn't." },
-  { flavour:'leader', a:{label:'Lead from the front',emoji:'🪖'}, b:{label:'Empower & step back', emoji:'🪜'},
-    discuss:"Tell a neighbour which one you defaulted to this week, and whether it was right." },
+  { flavour:'silly', a:{label:'Tea person', emoji:'🫖'}, b:{label:'Coffee person', emoji:'☕'} },
   { flavour:'leader', a:{label:'Move fast, break things', emoji:'💥'}, b:{label:'Measure twice, cut once', emoji:'📐'}, spicy:true,
     discuss:"Find someone who picked the other side and argue it out for 30 seconds." },
-  { flavour:'leader', a:{label:'Hire for attitude',  emoji:'🙂'}, b:{label:'Hire for skill',     emoji:'🛠️'},
-    discuss:"Quick pair: which has burned you more — a great attitude who couldn't deliver, or a star who was hard to work with?" },
-  { flavour:'leader', a:{label:'Radical candour',    emoji:'🗣️'}, b:{label:'Keep the peace',     emoji:'🕊️'}, spicy:true,
-    discuss:"Be honest with a neighbour: which do you actually do more of?" },
-  { flavour:'leader', a:{label:'"Could\'ve been an email" — I say it', emoji:'📣'}, b:{label:'I suffer in silence', emoji:'🤐'}, spicy:true },
 
-  // ---- 🤝 MINGLE interlude: get them up and moving ------------------------
+  // --- mid-way MINGLE breather ---
   { flavour:'leader', type:'mingle', a:{}, b:{},
     label:'Up and mingle! 🤝',
     prompt:"Find someone you haven't spoken to yet today. Swap the best thing you've delegated (or let go of) this year.",
     note:"Give them ~90 seconds. Then ring them back and hit Next." },
 
-  // ---- ⚡ Mercury / NZ flavour --------------------------------------------
-  { flavour:'mercury', a:{label:'Open the power bill now', emoji:'⚡'}, b:{label:'Let it sit 3 days', emoji:'📬'},
-    note:"We literally send these. Cheeky." },
-  { flavour:'mercury', a:{label:'Free EV (you charge it)', emoji:'🔋'}, b:{label:'Free petrol car forever', emoji:'⛽'},
-    discuss:"Find someone who picked the other side — what's really stopping you switching?" },
-  { flavour:'mercury', a:{label:'Solar panels: yes',      emoji:'🏠'}, b:{label:'Never bothering', emoji:'🚫'} },
-  { flavour:'mercury', a:{label:'Hydro lake view',        emoji:'💧'}, b:{label:'Wind farm view',  emoji:'🌬️'},
+  // --- back in, building toward the day's theme ---
+  { flavour:'leader', a:{label:'Hire for attitude', emoji:'🙂'}, b:{label:'Hire for skill', emoji:'🛠️'},
+    discuss:"Quick pair: which has burned you more — a great attitude who couldn't deliver, or a star who was hard to work with?" },
+  { flavour:'tech', a:{label:'AI is my intern', emoji:'🧑‍💻'}, b:{label:'AI is coming for my job', emoji:'😳'}, spicy:true,
+    discuss:"Pair up: name one task on your team you'd hand to an AI tomorrow — and one you never would." },
+  { flavour:'mercury', a:{label:'Hydro lake view', emoji:'💧'}, b:{label:'Wind farm view', emoji:'🌬️'},
     note:"We're all-renewable — no wrong answer." },
+  { flavour:'leader', a:{label:'Radical candour', emoji:'🗣️'}, b:{label:'Keep the peace', emoji:'🕊️'}, spicy:true,
+    discuss:"Be honest with a neighbour: which do you actually do more of?" },
+  { flavour:'leader', a:{label:'"Could\'ve been an email" — I say it', emoji:'📣'}, b:{label:'I suffer in silence', emoji:'🤐'}, spicy:true },
 
-  // ---- 🚀 the day ahead: vibe coding → agentic engineering ----------------
-  //  Bridges the warm-up straight into Day 1's theme (the new SDLC).
+  // --- 🚀 the day ahead: vibe coding → agentic engineering ---
   { flavour:'theme', a:{label:'Vibe coding', emoji:'🎸'}, b:{label:'Agentic engineering', emoji:'🏗️'},
     discuss:"Find someone on the other side — where's your team really sitting on that spectrum today?" },
   { flavour:'theme', a:{label:'Conductor (hands-on)', emoji:'🎼'}, b:{label:'Orchestrator (delegates to agents)', emoji:'🎛️'},
@@ -2604,7 +2594,7 @@ const CARDS = [
   { flavour:'theme', a:{label:'Prompt it', emoji:'💬'}, b:{label:'Spec it', emoji:'📋'},
     note:"From syntax to intent — the day's big shift." },
 
-  // ---- 🔮 finale: predict the team ----------------------------------------
+  // --- 🔮 finale: predict the team ---
   { flavour:'predict', type:'predict', a:{label:'Most of us are optimists', emoji:'🌅'}, b:{label:'Most of us are realists', emoji:'🧐'},
     note:"PREDICT: guess which way the room leans. Feeds The Oracle award." },
   { flavour:'predict', type:'predict', a:{label:'Team would rather: extra week off', emoji:'🏖️'}, b:{label:'Team would rather: 4-day week forever', emoji:'🗓️'},
