@@ -10,7 +10,7 @@
 :root{
   --yellow:#FFF100; --black:#000; --blue:#C2CED9; --grey:#DFE0DF; --white:#fff;
   --ui-blue:#265BDE; --ui-green:#358600; --ui-red:#E71D36;
-  --font:'Bryant Condensed', system-ui, sans-serif;
+  --font:'Bryant Condensed','Apple Color Emoji','Segoe UI Emoji','Noto Color Emoji', system-ui, sans-serif;
 }
 *{box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent}
 html,body{height:100%}
@@ -2733,8 +2733,10 @@ function renderRoom(){
   const minSide = t.A.length<t.B.length?'A':(t.B.length<t.A.length?'B':null);
   let callout='';
   if(game.phase==='revealed'){
+    const ns=minSide==='A'?t.A:t.B; const maj=t.A.length>=t.B.length?card.a:card.b;
     if(t.A.length===t.B.length) callout=`<span class="pill">Dead heat.</span> Someone change their mind — convince the room.`;
-    else{ const m=minSide==='A'?card.a:card.b; const ns=minSide==='A'?t.A:t.B;
+    else if(ns.length===0) callout=`<span class="pill">Clean sweep!</span> Every single person picked ${esc(maj.label)} ${maj.emoji}`;
+    else{ const m=minSide==='A'?card.a:card.b;
       const who=ns.slice(0,3).join(', ')+(ns.length>3?` +${ns.length-3}`:'');
       callout=`<span class="pill">${esc(m.label)} (${ns.length})</span> ${game.reveal_names?esc(who)+' — defend yourselves! 🎤':'who picked this? Own up. 🎤'}`;
     }
@@ -2802,7 +2804,8 @@ function renderHost(){
   let callLine;
   if(game.phase!=='revealed') callLine = `▶ Let votes land, then hit Reveal.`;
   else if(t.A.length===t.B.length) callLine=`Dead heat — pick anyone to break the tie out loud.`;
-  else callLine = `🎤 Ask ${minNames.slice(0,2).join(' & ')||'the minority'} first — "${(minSide==='A'?card.a.label:card.b.label)}, why?"`;
+  else if(minNames.length===0) callLine=`Clean sweep — everyone agreed. Ask the most enthusiastic one why it's so obvious.`;
+  else callLine = `🎤 Ask ${minNames.slice(0,2).join(' & ')} first — "${(minSide==='A'?card.a.label:card.b.label)}, why?"`;
 
   const sideBox=(c,arr,lead)=>`<div class="hside ${lead?'lead':''}">
       <div class="sl"><span>${c.emoji} ${esc(c.label)}</span><span class="n">${arr.length}</span></div>
