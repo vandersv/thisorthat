@@ -2738,8 +2738,10 @@ function computeAwards(){
     const v=votesFor(i); const t=tally(i);
     const minSide = t.A.length<t.B.length ? 'A' : (t.B.length<t.A.length?'B':null);
     const minSize = Math.min(t.A.length,t.B.length);
+    // "bold minority" = the smaller side when it's <=20% of voters (scales with room size)
+    const boldThresh = Math.max(1, Math.round(t.total*0.2));
     Object.entries(v).forEach(([id,x])=>{
-      if(minSide && x.choice===minSide){ minorityCount[id]=(minorityCount[id]||0)+1; if(minSize===1) lonely[id]=(lonely[id]||0)+1; }
+      if(minSide && x.choice===minSide){ minorityCount[id]=(minorityCount[id]||0)+1; if(minSize<=boldThresh) lonely[id]=(lonely[id]||0)+1; }
     });
     // pairwise agreement
     const ents=Object.entries(v);
@@ -2759,7 +2761,7 @@ function computeAwards(){
   let twins=null,tv=-1; for(const k in both){ if(both[k]>=Math.max(3,played.length*0.5)){ const r=(agree[k]||0)/both[k]; if(r>tv){tv=r;twins=k;} } }
   return {
     contrarian: contrarian&&{name:names[contrarian.k], detail:`went against the room ${contrarian.v}×`},
-    hot:        hot&&{name:names[hot.k], detail:`stood completely alone ${hot.v}×`},
+    hot:        hot&&{name:names[hot.k], detail:`went out on a limb ${hot.v}×`},
     oracle:     oracleW&&{name:names[oracleW.k], detail:`read the team right ${oracleW.v}×`},
     twins:      twins&&{name:twins.split('|').map(id=>names[id]).join(' & '), detail:`agreed ${Math.round(tv*100)}% of the time`},
   };
@@ -2784,7 +2786,8 @@ function computeRecap(){
     divided: divided && {q:lbl(divided), d:`almost a dead heat — ${divided.t.A.length} vs ${divided.t.B.length}`},
     united:  united  && {q:lbl(united),  d:`${pct(united)}% agreed — the room's strongest consensus`},
     brave:   brave   && (()=>{ const {arr,side}=minOf(brave);
-       return {q:side.label, d:`only ${arr.length} dared${game.reveal_names?' — '+arr.slice(0,4).join(', '):''}`}; })(),
+       const shown=arr.slice(0,5).join(', ')+(arr.length>5?` +${arr.length-5}`:'');
+       return {q:side.label, d:`only ${arr.length} dared${game.reveal_names?' — '+shown:''}`}; })(),
   };
 }
 
